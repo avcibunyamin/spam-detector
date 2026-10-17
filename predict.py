@@ -1,6 +1,6 @@
 """
-Tahmin modülü.
-Eğitilmiş modeli yükleyip yeni e-posta metinleri üzerinde tahmin yapar.
+Prediction module.
+Loads the trained model and classifies new email texts.
 """
 
 import os
@@ -11,9 +11,9 @@ from preprocess import TextPreprocessor
 
 class SpamPredictor:
     """
-    Eğitilmiş modeli kullanarak e-posta metinlerini sınıflandıran sınıf.
+    Classifies email texts with the trained model.
 
-    model/ dizinindeki model.pkl ve vectorizer.pkl dosyalarını yükler.
+    Loads model.pkl and vectorizer.pkl from the model/ directory.
     """
 
     LABELS = {0: "Normal Mail (Ham)", 1: "Spam"}
@@ -21,14 +21,14 @@ class SpamPredictor:
     def __init__(self, model_dir: str = "model"):
         """
         Args:
-            model_dir: Model dosyalarının bulunduğu dizin.
+            model_dir: Directory that contains the model files.
         """
         model_path = os.path.join(model_dir, "model.pkl")
         vectorizer_path = os.path.join(model_dir, "vectorizer.pkl")
 
         if not os.path.exists(model_path) or not os.path.exists(vectorizer_path):
             raise FileNotFoundError(
-                "Model dosyaları bulunamadı. Lütfen önce train.py ile modeli eğitin."
+                "Model files not found. Please train the model first with train.py."
             )
 
         with open(model_path, "rb") as f:
@@ -40,15 +40,15 @@ class SpamPredictor:
 
     def predict(self, text: str) -> dict:
         """
-        Tek bir e-posta metni için tahmin üretir.
+        Predicts the label of a single email text.
 
         Args:
-            text: Ham e-posta metni.
+            text: Raw email text.
 
         Returns:
-            label: Tahmin sonucu ("Normal Mail" / "Spam")
-            is_spam: Spam ise True, değilse False
-            confidence: Modelin güven skoru (0-100 arası)
+            label: Predicted label ("Normal Mail (Ham)" / "Spam")
+            is_spam: True if the text is spam, otherwise False
+            confidence: Model confidence as a percentage (0-100)
         """
         cleaned = self.preprocessor.clean(text)
         vectorized = self.vectorizer.transform([cleaned])

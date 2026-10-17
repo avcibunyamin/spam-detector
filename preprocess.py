@@ -1,6 +1,6 @@
 """
-Metin ön işleme modülü.
-E-posta metinlerini temizleyip model için hazır hale getirir.
+Text preprocessing module.
+Cleans email texts and prepares them for the model.
 """
 
 import re
@@ -11,27 +11,27 @@ from nltk.stem import PorterStemmer
 
 
 def download_nltk_resources():
-    """Gerekli NLTK kaynaklarını indirir."""
+    """Downloads the required NLTK resources."""
     nltk.download("stopwords", quiet=True)
     nltk.download("punkt", quiet=True)
 
 
 class TextPreprocessor:
     """
-    E-posta metinlerini temizleyen ve normalleştiren sınıf.
+    Cleans and normalizes email texts.
 
-    Uygulanan adımlar:
-    - Küçük harfe çevirme
-    - URL, sayı ve noktalama temizleme
-    - Stopword kaldırma
-    - Stemming (isteğe bağlı)
+    Steps:
+    - Lowercasing
+    - Removing URLs, numbers and punctuation
+    - Removing stopwords
+    - Stemming (optional)
     """
 
     def __init__(self, use_stemming: bool = False, language: str = "english"):
         """
         Args:
-            use_stemming: Stemming uygulanıp uygulanmayacağı.
-            language: Stopword dili.
+            use_stemming: Whether to apply stemming.
+            language: Stopword language.
         """
         download_nltk_resources()
         self.stop_words = set(stopwords.words(language))
@@ -40,35 +40,35 @@ class TextPreprocessor:
 
     def clean(self, text: str) -> str:
         """
-        Tek bir metni temizler.
+        Cleans a single text.
 
         Args:
-            text: Ham e-posta metni.
+            text: Raw email text.
 
         Returns:
-            Temizlenmiş metin.
+            Cleaned text.
 
-        Time Complexity: O(n) — n metnin karakter sayısı.
+        Time Complexity: O(n), where n is the number of characters.
         """
         if not isinstance(text, str):
             return ""
 
-        # Küçük harfe çevir
+        # Lowercase
         text = text.lower()
 
-        # URL kaldır
+        # Remove URLs
         text = re.sub(r"http\S+|www\S+", "", text)
 
-        # Sayıları kaldır
+        # Remove numbers
         text = re.sub(r"\d+", "", text)
 
-        # Noktalama kaldır
+        # Remove punctuation
         text = text.translate(str.maketrans("", "", string.punctuation))
 
-        # Fazla boşlukları temizle
+        # Collapse whitespace
         text = re.sub(r"\s+", " ", text).strip()
 
-        # Stopword kaldır ve isteğe bağlı stemming uygula
+        # Remove stopwords and optionally stem
         tokens = text.split()
         tokens = [t for t in tokens if t not in self.stop_words]
 
@@ -79,14 +79,14 @@ class TextPreprocessor:
 
     def clean_batch(self, texts: list) -> list:
         """
-        Metin listesini toplu olarak temizler.
+        Cleans a list of texts.
 
         Args:
-            texts: Ham metin listesi.
+            texts: List of raw texts.
 
         Returns:
-            Temizlenmiş metin listesi.
+            List of cleaned texts.
 
-        Time Complexity: O(n * m) — n metin sayısı, m ortalama metin uzunluğu.
+        Time Complexity: O(n * m), where n is the number of texts and m the average length.
         """
         return [self.clean(text) for text in texts]

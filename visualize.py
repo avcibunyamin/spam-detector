@@ -1,6 +1,6 @@
 """
-Görselleştirme modülü.
-Proposal ve dokümantasyon için model performans görselleri üretir.
+Visualization module.
+Generates model performance charts for the proposal and documentation.
 """
 
 import pickle
@@ -13,7 +13,7 @@ from preprocess import TextPreprocessor
 
 
 def load_model(model_dir="model"):
-    """Model ve vektörizeri yükler."""
+    """Loads the model and vectorizer."""
     with open(f"{model_dir}/model.pkl", "rb") as f:
         model = pickle.load(f)
     with open(f"{model_dir}/vectorizer.pkl", "rb") as f:
@@ -22,7 +22,7 @@ def load_model(model_dir="model"):
 
 
 def plot_confusion_matrix(model, vectorizer):
-    """Confusion matrix görseli üretir."""
+    """Plots the confusion matrix."""
     preprocessor = TextPreprocessor()
 
     df = pd.read_csv("data/spam.csv", encoding="latin-1", usecols=[0, 1])
@@ -48,57 +48,57 @@ def plot_confusion_matrix(model, vectorizer):
     plt.tight_layout()
     plt.savefig("confusion_matrix.png", dpi=150, bbox_inches="tight")
     plt.close()
-    print("confusion_matrix.png kaydedildi ✓")
+    print("Saved confusion_matrix.png ✓")
 
 
 def plot_top_spam_words(model, vectorizer, n=20):
-    """Spam için en etkili kelimeleri gösteren grafik üretir."""
+    """Plots the most influential words for spam and normal mail."""
     feature_names = vectorizer.get_feature_names_out()
-    # Sınıf 1 (spam) için katsayılar
+    # Coefficients for class 1 (spam)
     coefs = model.coef_[0]
     top_spam_idx = np.argsort(coefs)[-n:][::-1]
     top_ham_idx = np.argsort(coefs)[:n]
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Spam kelimeleri
+    # Spam words
     axes[0].barh(
         [feature_names[i] for i in top_spam_idx][::-1],
         [coefs[i] for i in top_spam_idx][::-1],
         color="#e74c3c"
     )
-    axes[0].set_title("Spam İçin En Etkili Kelimeler", fontsize=12, fontweight="bold")
-    axes[0].set_xlabel("Model Katsayısı")
+    axes[0].set_title("Most Influential Words for Spam", fontsize=12, fontweight="bold")
+    axes[0].set_xlabel("Model Coefficient")
 
-    # Normal (ham) kelimeleri
+    # Normal (ham) words
     axes[1].barh(
         [feature_names[i] for i in top_ham_idx][::-1],
         [abs(coefs[i]) for i in top_ham_idx][::-1],
         color="#2ecc71"
     )
-    axes[1].set_title("Normal Mail İçin En Etkili Kelimeler", fontsize=12, fontweight="bold")
-    axes[1].set_xlabel("Model Katsayısı")
+    axes[1].set_title("Most Influential Words for Normal Mail", fontsize=12, fontweight="bold")
+    axes[1].set_xlabel("Model Coefficient")
 
-    plt.suptitle("TF-IDF + Logistic Regression — Özellik Ağırlıkları", fontsize=13, fontweight="bold")
+    plt.suptitle("TF-IDF + Logistic Regression — Feature Weights", fontsize=13, fontweight="bold")
     plt.tight_layout()
     plt.savefig("top_words.png", dpi=150, bbox_inches="tight")
     plt.close()
-    print("top_words.png kaydedildi ✓")
+    print("Saved top_words.png ✓")
 
 
 def plot_pipeline():
-    """Proje pipeline'ını gösteren akış diyagramı üretir."""
+    """Draws the project pipeline diagram."""
     fig, ax = plt.subplots(figsize=(12, 3.5))
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 3)
     ax.axis("off")
 
     steps = [
-        ("Ham Metin\n(E-posta)", 0.8, "#3498db"),
-        ("Ön İşleme\n(Temizleme,\nStopword)", 2.5, "#9b59b6"),
-        ("TF-IDF\nVektörizasyon", 4.4, "#e67e22"),
+        ("Raw Text\n(Email)", 0.8, "#3498db"),
+        ("Preprocessing\n(Cleaning,\nStopwords)", 2.5, "#9b59b6"),
+        ("TF-IDF\nVectorization", 4.4, "#e67e22"),
         ("Logistic\nRegression", 6.3, "#e74c3c"),
-        ("Tahmin\n(Spam / Normal)", 8.5, "#27ae60"),
+        ("Prediction\n(Spam / Normal)", 8.5, "#27ae60"),
     ]
 
     for label, x, color in steps:
@@ -116,18 +116,18 @@ def plot_pipeline():
         ax.annotate("", xy=(x_end, 1.5), xytext=(x_start, 1.5),
                     arrowprops=dict(arrowstyle="->", color="#2c3e50", lw=2))
 
-    ax.set_title("Spam Tespit Sistemi — İşlem Pipeline'ı",
+    ax.set_title("Spam Detection System — Pipeline",
                  fontsize=13, fontweight="bold", pad=10)
     plt.tight_layout()
     plt.savefig("pipeline.png", dpi=150, bbox_inches="tight")
     plt.close()
-    print("pipeline.png kaydedildi ✓")
+    print("Saved pipeline.png ✓")
 
 
 if __name__ == "__main__":
-    print("Görseller üretiliyor...")
+    print("Generating charts...")
     model, vectorizer = load_model()
     plot_confusion_matrix(model, vectorizer)
     plot_top_spam_words(model, vectorizer)
     plot_pipeline()
-    print("\nTüm görseller proje klasörüne kaydedildi!")
+    print("\nAll charts saved to the project folder!")

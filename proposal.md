@@ -1,6 +1,5 @@
 # Proje Teklifi: Yapay Zeka Destekli Spam E-posta Tespit Sistemi
 
-**Öğrenci:** Bünyamin AVCI
 **Tarih:** Nisan 2026
 
 ---
@@ -59,4 +58,4 @@ Claude
 
 ## Github
 
-https://github.com/bunyaminavc/spam-detector
+https://github.com/avcibunyamin/spam-detector

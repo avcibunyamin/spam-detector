@@ -1,6 +1,6 @@
 """
-Model eğitim modülü.
-TF-IDF vektörizasyonu ve Logistic Regression ile spam e-posta tespit modeli eğitir.
+Model training module.
+Trains a spam email classifier with TF-IDF vectorization and Logistic Regression.
 """
 
 import os
@@ -16,16 +16,16 @@ from preprocess import TextPreprocessor
 
 class SpamTrainer:
     """
-    Spam e-posta tespit modeli eğiten sınıf.
+    Trains the spam email classifier.
 
-    TF-IDF vektörizasyonu ile Logistic Regression modelini birleştirir.
-    Eğitilmiş model ve vektörizer disk'e kaydedilir.
+    Combines TF-IDF vectorization with a Logistic Regression model.
+    The trained model and vectorizer are saved to disk.
     """
 
     def __init__(self, model_dir: str = "model"):
         """
         Args:
-            model_dir: Model dosyalarının kaydedileceği dizin.
+            model_dir: Directory where the model files are saved.
         """
         self.model_dir = model_dir
         self.preprocessor = TextPreprocessor()
@@ -35,17 +35,17 @@ class SpamTrainer:
 
     def load_dataset(self, path: str) -> pd.DataFrame:
         """
-        SMS Spam Collection veri setini yükler.
+        Loads the SMS Spam Collection dataset.
 
         Kaggle: https://www.kaggle.com/datasets/uciml/sms-spam-collection-dataset
-        Beklenen CSV formatı: 'v1' (ham/spam etiketi), 'v2' (mesaj metni)
+        Expected CSV format: 'v1' (ham/spam label), 'v2' (message text)
 
         Args:
-            path: spam.csv dosyasının yolu.
+            path: Path to spam.csv.
 
         Returns:
-            DataFrame (text, label sütunları).
-            label: 0 = Normal (ham), 1 = Spam
+            DataFrame with text and label columns.
+            label: 0 = normal (ham), 1 = spam
         """
         df = pd.read_csv(path, encoding="latin-1", usecols=[0, 1])
         df.columns = ["label", "text"]
@@ -55,22 +55,22 @@ class SpamTrainer:
         df = df.dropna(subset=["label", "text"])
         df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-        print(f"Toplam örnek : {len(df)}")
+        print(f"Total samples: {len(df)}")
         print(f"Normal (ham) : {(df['label'] == 0).sum()}")
         print(f"Spam         : {(df['label'] == 1).sum()}")
         return df
 
     def train(self, data_path: str, test_size: float = 0.2):
         """
-        Modeli eğitir ve değerlendirme metriklerini yazdırır.
+        Trains the model and prints evaluation metrics.
 
         Args:
-            data_path: spam.csv dosyasının yolu.
-            test_size: Test seti oranı (varsayılan: 0.2).
+            data_path: Path to spam.csv.
+            test_size: Test set ratio (default: 0.2).
         """
         df = self.load_dataset(data_path)
 
-        print("Ön işleme uygulanıyor...")
+        print("Preprocessing...")
         df["clean_text"] = self.preprocessor.clean_batch(df["text"].tolist())
 
         X = df["clean_text"]
@@ -80,11 +80,11 @@ class SpamTrainer:
             X, y, test_size=test_size, random_state=42, stratify=y
         )
 
-        print("TF-IDF vektörizasyonu...")
+        print("Vectorizing with TF-IDF...")
         X_train_vec = self.vectorizer.fit_transform(X_train)
         X_test_vec = self.vectorizer.transform(X_test)
 
-        print("Model eğitimi başlıyor...")
+        print("Training the model...")
         self.model.fit(X_train_vec, y_train)
 
         y_pred = self.model.predict(X_test_vec)
@@ -92,22 +92,22 @@ class SpamTrainer:
         self._save()
 
     def _print_metrics(self, y_true, y_pred):
-        """Değerlendirme metriklerini ekrana yazdırır."""
-        print("\n========== Model Performansı ==========")
+        """Prints evaluation metrics."""
+        print("\n========== Model Performance ==========")
         print(f"Accuracy : {accuracy_score(y_true, y_pred):.4f}")
         print(f"Precision: {precision_score(y_true, y_pred):.4f}")
         print(f"Recall   : {recall_score(y_true, y_pred):.4f}")
         print(f"F1-Score : {f1_score(y_true, y_pred):.4f}")
-        print("\nDetaylı Rapor:")
+        print("\nDetailed report:")
         print(classification_report(y_true, y_pred, target_names=["Normal (Ham)", "Spam"]))
 
     def _save(self):
-        """Eğitilmiş model ve vektörizeri disk'e kaydeder."""
+        """Saves the trained model and vectorizer to disk."""
         with open(os.path.join(self.model_dir, "model.pkl"), "wb") as f:
             pickle.dump(self.model, f)
         with open(os.path.join(self.model_dir, "vectorizer.pkl"), "wb") as f:
             pickle.dump(self.vectorizer, f)
-        print(f"Model '{self.model_dir}/' dizinine kaydedildi.")
+        print(f"Model saved to '{self.model_dir}/'.")
 
 
 if __name__ == "__main__":

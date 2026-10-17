@@ -1,6 +1,6 @@
 """
-Streamlit web arayüzü.
-Kullanıcıdan e-posta metni alır ve spam/normal sınıflandırması yapar.
+Streamlit web interface.
+Takes an email text from the user and classifies it as spam or normal.
 """
 
 import random
@@ -9,25 +9,25 @@ import streamlit as st
 from predict import SpamPredictor
 
 st.set_page_config(
-    page_title="Spam E-posta Tespit Sistemi",
+    page_title="Spam Email Detection System",
     page_icon="📧",
     layout="centered",
 )
 
-st.title("📧 Spam E-posta Tespit Sistemi")
-st.markdown("Bir e-posta metni girin veya dosya yükleyin — yapay zeka analiz etsin.")
+st.title("📧 Spam Email Detection System")
+st.markdown("Enter an email text and let the AI analyze it.")
 st.divider()
 
 
 @st.cache_resource
 def load_predictor():
-    """Modeli bir kez yükler ve önbelleğe alır."""
+    """Loads the model once and caches it."""
     return SpamPredictor()
 
 
 @st.cache_data
 def load_samples():
-    """CSV'den tüm mesajları yükler."""
+    """Loads all messages from the CSV."""
     df = pd.read_csv("data/spam.csv", encoding="latin-1", usecols=[0, 1])
     df.columns = ["label", "text"]
     return df["text"].dropna().tolist()
@@ -39,61 +39,61 @@ except FileNotFoundError as e:
     st.error(str(e))
     st.stop()
 
-# Session state başlat
+# Initialize session state
 if "text_input" not in st.session_state:
     st.session_state["text_input"] = ""
 
-# Örnek veri butonları
+# Sample data buttons
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    if st.button("🎲 Rastgele Veri", use_container_width=True):
+    if st.button("🎲 Random Sample", use_container_width=True):
         samples = load_samples()
         st.session_state["text_input"] = random.choice(samples)
 
 with col2:
-    if st.button("🚨 Spam Örneği", use_container_width=True):
+    if st.button("🚨 Spam Sample", use_container_width=True):
         df = pd.read_csv("data/spam.csv", encoding="latin-1", usecols=[0, 1])
         df.columns = ["label", "text"]
         st.session_state["text_input"] = random.choice(df[df["label"] == "spam"]["text"].dropna().tolist())
 
 with col3:
-    if st.button("✅ Normal Örneği", use_container_width=True):
+    if st.button("✅ Normal Sample", use_container_width=True):
         df = pd.read_csv("data/spam.csv", encoding="latin-1", usecols=[0, 1])
         df.columns = ["label", "text"]
         st.session_state["text_input"] = random.choice(df[df["label"] == "ham"]["text"].dropna().tolist())
 
-# Metin alanı
+# Text area
 text_input = st.text_area(
-    "E-posta metnini buraya yapıştırın:",
+    "Paste the email text here:",
     value=st.session_state["text_input"],
     height=200,
-    placeholder="E-posta içeriğini buraya girin...",
+    placeholder="Enter the email content...",
 )
 
 st.divider()
 
-# Analiz butonu
-if st.button("Analiz Et", type="primary", use_container_width=True):
+# Analyze button
+if st.button("Analyze", type="primary", use_container_width=True):
     if not text_input.strip():
-        st.warning("Lütfen bir metin girin veya dosya yükleyin.")
+        st.warning("Please enter some text.")
     else:
-        with st.spinner("Analiz ediliyor..."):
+        with st.spinner("Analyzing..."):
             result = predictor.predict(text_input)
 
         if result["is_spam"]:
-            st.error(f"### Sonuç: {result['label']}")
-            st.metric("Güven Skoru", f"%{result['confidence']}")
+            st.error(f"### Result: {result['label']}")
+            st.metric("Confidence", f"{result['confidence']}%")
             st.markdown(
-                "> Bu e-posta yapay zeka tarafından **spam** olarak sınıflandırıldı. "
-                "Dikkatli olun, şüpheli bağlantılara tıklamayın."
+                "> The AI classified this email as **spam**. "
+                "Be careful and do not click suspicious links."
             )
         else:
-            st.success(f"### Sonuç: {result['label']}")
-            st.metric("Güven Skoru", f"%{result['confidence']}")
+            st.success(f"### Result: {result['label']}")
+            st.metric("Confidence", f"{result['confidence']}%")
             st.markdown(
-                "> Bu e-posta yapay zeka tarafından **normal** olarak sınıflandırıldı."
+                "> The AI classified this email as **normal**."
             )
 
 st.divider()
-st.caption("Yapay Zeka Destekli Spam E-posta Tespit Sistemi | TF-IDF + Logistic Regression")
+st.caption("AI-Powered Spam Email Detection System | TF-IDF + Logistic Regression")
